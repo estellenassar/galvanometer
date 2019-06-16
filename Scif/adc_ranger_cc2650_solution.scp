@@ -1,0 +1,414 @@
+<?xml version="1.0"?>
+<project name="ADC Ranger CC2650" version="1.3.0.42428">
+    <desc><![CDATA[Sample ADC input. Let the ADC input determine the measurement period
+for the Ranger sensor, controlled by the application.]]></desc>
+    <pattr name="Board">CC2650 LaunchPad</pattr>
+    <pattr name="Chip name">CC2650</pattr>
+    <pattr name="Chip package">QFN48 7x7 RGZ</pattr>
+    <pattr name="Chip revision">-</pattr>
+    <pattr name="Code prefix"></pattr>
+    <pattr name="Operating system">TI-RTOS</pattr>
+    <pattr name="Output directory">.</pattr>
+    <task name="ADC">
+        <desc><![CDATA[]]></desc>
+        <tattr name="output.adcValue" type="dec" content="struct" scope="task" min="0" max="65535">0</tattr>
+        <resource_ref name="ADC" enabled="1"/>
+        <resource_ref name="Analog Open-Drain Pins" enabled="0"/>
+        <resource_ref name="Analog Open-Source Pins" enabled="0"/>
+        <resource_ref name="Analog Pins" enabled="1">
+            <io_usage name="SENSOR_INPUT" label="Analog Sensor Input">
+                <uattr name="Pin count">0</uattr>
+                <uattr name="Pin/0000">DIO27</uattr>
+                <uattr name="Pin/0001"></uattr>
+                <uattr name="Pin/0002"></uattr>
+                <uattr name="Pin/0003"></uattr>
+                <uattr name="Pin/0004"></uattr>
+                <uattr name="Pin/0005"></uattr>
+                <uattr name="Pin/0006"></uattr>
+                <uattr name="Pin/0007"></uattr>
+            </io_usage>
+        </resource_ref>
+        <resource_ref name="COMPA" enabled="0"/>
+        <resource_ref name="COMPB" enabled="0"/>
+        <resource_ref name="COMPB Event Trigger" enabled="0"/>
+        <resource_ref name="Delay Insertion" enabled="0"/>
+        <resource_ref name="Differential Output Pins" enabled="0"/>
+        <resource_ref name="Digital Input Pins" enabled="0"/>
+        <resource_ref name="Digital Open-Drain Pins" enabled="0"/>
+        <resource_ref name="Digital Open-Source Pins" enabled="0"/>
+        <resource_ref name="Digital Output Pins" enabled="0"/>
+        <resource_ref name="GPIO Event Trigger" enabled="0"/>
+        <resource_ref name="I2C Master" enabled="0">
+            <rattr name="SCL frequency">0</rattr>
+            <rattr name="SCL stretch timeout">1</rattr>
+            <io_usage>
+                <uattr name="SCL pin/0000"></uattr>
+                <uattr name="SDA pin/0000"></uattr>
+            </io_usage>
+        </resource_ref>
+        <resource_ref name="ISRC" enabled="0"/>
+        <resource_ref name="Math and Logic" enabled="0"/>
+        <resource_ref name="Multi-Buffered Output Data Exchange" enabled="0">
+            <rattr name="Buffer count">2</rattr>
+            <rattr name="Indicate overflow at buffer check">1</rattr>
+            <rattr name="Indicate overflow at buffer switch">0</rattr>
+            <rattr name="Prevent overflow at buffer switch">1</rattr>
+        </resource_ref>
+        <resource_ref name="Peripheral Sharing" enabled="0"/>
+        <resource_ref name="RTC Multi-Event Capture" enabled="0"/>
+        <resource_ref name="RTC-Based Execution Scheduling" enabled="1"/>
+        <resource_ref name="SPI Chip Select" enabled="0"/>
+        <resource_ref name="SPI Data Transfer" enabled="0">
+            <rattr name="Bit rate">0</rattr>
+            <rattr name="MISO configuration when inactive">-1</rattr>
+            <rattr name="MOSI configuration on initialization">0</rattr>
+            <rattr name="MOSI configuration on uninitialization">0</rattr>
+            <rattr name="SCLK configuration on initialization">0</rattr>
+            <rattr name="SCLK configuration on uninitialization">0</rattr>
+            <io_usage>
+                <uattr name="MISO pin/0000"></uattr>
+                <uattr name="MOSI pin/0000"></uattr>
+                <uattr name="SCLK pin/0000"></uattr>
+            </io_usage>
+        </resource_ref>
+        <resource_ref name="System CPU Alert" enabled="1"/>
+        <resource_ref name="TDC" enabled="0"/>
+        <resource_ref name="Timer 0" enabled="0"/>
+        <resource_ref name="Timer Event Trigger" enabled="0"/>
+        <resource_ref name="UART Emulator" enabled="0">
+            <rattr name="RX buffer size">64</rattr>
+            <rattr name="Required idle period before enabling RX">11</rattr>
+            <rattr name="TX buffer size">64</rattr>
+            <io_usage>
+                <uattr name="RX pin/0000"></uattr>
+                <uattr name="TX pin/0000"></uattr>
+            </io_usage>
+        </resource_ref>
+        <sccode name="event0"><![CDATA[]]></sccode>
+        <sccode name="execute"><![CDATA[// Enable ADC for synchronous operation
+adcEnableSync(ADC_REF_FIXED, ADC_SAMPLE_TIME_2P7_US, ADC_TRIGGER_MANUAL);
+
+// Generate manual trigger
+// Read the sensor and store the value
+adcGenManualTrigger();
+adcReadFifo(output.adcValue);
+
+// Disable the ADC
+adcDisable();
+
+// Generate Alert to application
+fwGenAlertInterrupt();
+
+// Schedule next iteration
+fwScheduleTask(1);]]></sccode>
+        <sccode name="initialize"><![CDATA[// Select the GPIO analog pin as ADC input
+adcSelectGpioInput(AUXIO_A_SENSOR_INPUT);
+
+// Schedule first iteration
+fwScheduleTask(1);]]></sccode>
+        <sccode name="terminate"><![CDATA[]]></sccode>
+        <tt_iter>run_execute</tt_iter>
+        <tt_struct>output.adcValue</tt_struct>
+    </task>
+    <task name="Ranger">
+        <desc><![CDATA[]]></desc>
+        <tattr name="cfg.c" type="dec" content="struct" scope="task" min="0" max="65535">0</tattr>
+        <tattr name="input.period" type="dec" content="struct" scope="task" min="0" max="65535">1000</tattr>
+        <tattr name="input.s" type="dec" content="struct" scope="task" min="0" max="65535">0</tattr>
+        <tattr name="output.tdcValueH" type="hex" content="struct" scope="task" min="0000" max="ffff">0000</tattr>
+        <tattr name="output.tdcValueL" type="hex" content="struct" scope="task" min="0000" max="ffff">0000</tattr>
+        <tattr name="output.tof" type="dec" content="struct" scope="task" min="0" max="65535">0</tattr>
+        <tattr name="state.d" type="dec" content="struct" scope="task" min="0" max="65535">0</tattr>
+        <resource_ref name="ADC" enabled="0"/>
+        <resource_ref name="Analog Open-Drain Pins" enabled="0"/>
+        <resource_ref name="Analog Open-Source Pins" enabled="0"/>
+        <resource_ref name="Analog Pins" enabled="0"/>
+        <resource_ref name="COMPA" enabled="0"/>
+        <resource_ref name="COMPB" enabled="0"/>
+        <resource_ref name="COMPB Event Trigger" enabled="0"/>
+        <resource_ref name="Delay Insertion" enabled="1"/>
+        <resource_ref name="Differential Output Pins" enabled="0"/>
+        <resource_ref name="Digital Input Pins" enabled="0"/>
+        <resource_ref name="Digital Open-Drain Pins" enabled="0"/>
+        <resource_ref name="Digital Open-Source Pins" enabled="1">
+            <io_usage name="RANGER" label="Timer Ranger">
+                <uattr name="Configuration on uninitialization">-1</uattr>
+                <uattr name="Output value on initialization">0</uattr>
+                <uattr name="Pin count">0</uattr>
+                <uattr name="Pin/0000">DIO29</uattr>
+                <uattr name="Pin/0001"></uattr>
+                <uattr name="Pin/0002"></uattr>
+                <uattr name="Pin/0003"></uattr>
+                <uattr name="Pin/0004"></uattr>
+                <uattr name="Pin/0005"></uattr>
+                <uattr name="Pin/0006"></uattr>
+                <uattr name="Pin/0007"></uattr>
+                <uattr name="Pin/0008"></uattr>
+                <uattr name="Pin/0009"></uattr>
+                <uattr name="Pin/0010"></uattr>
+                <uattr name="Pin/0011"></uattr>
+                <uattr name="Pin/0012"></uattr>
+                <uattr name="Pin/0013"></uattr>
+                <uattr name="Pin/0014"></uattr>
+                <uattr name="Pin/0015"></uattr>
+            </io_usage>
+        </resource_ref>
+        <resource_ref name="Digital Output Pins" enabled="0"/>
+        <resource_ref name="GPIO Event Trigger" enabled="0"/>
+        <resource_ref name="I2C Master" enabled="0">
+            <rattr name="SCL frequency">0</rattr>
+            <rattr name="SCL stretch timeout">1</rattr>
+            <io_usage>
+                <uattr name="SCL pin/0000"></uattr>
+                <uattr name="SDA pin/0000"></uattr>
+            </io_usage>
+        </resource_ref>
+        <resource_ref name="ISRC" enabled="0"/>
+        <resource_ref name="Math and Logic" enabled="0"/>
+        <resource_ref name="Multi-Buffered Output Data Exchange" enabled="0">
+            <rattr name="Buffer count">2</rattr>
+            <rattr name="Indicate overflow at buffer check">1</rattr>
+            <rattr name="Indicate overflow at buffer switch">0</rattr>
+            <rattr name="Prevent overflow at buffer switch">1</rattr>
+        </resource_ref>
+        <resource_ref name="Peripheral Sharing" enabled="1"/>
+        <resource_ref name="RTC Multi-Event Capture" enabled="0"/>
+        <resource_ref name="RTC-Based Execution Scheduling" enabled="1"/>
+        <resource_ref name="SPI Chip Select" enabled="0"/>
+        <resource_ref name="SPI Data Transfer" enabled="0">
+            <rattr name="Bit rate">0</rattr>
+            <rattr name="MISO configuration when inactive">-1</rattr>
+            <rattr name="MOSI configuration on initialization">0</rattr>
+            <rattr name="MOSI configuration on uninitialization">0</rattr>
+            <rattr name="SCLK configuration on initialization">0</rattr>
+            <rattr name="SCLK configuration on uninitialization">0</rattr>
+            <io_usage>
+                <uattr name="MISO pin/0000"></uattr>
+                <uattr name="MOSI pin/0000"></uattr>
+                <uattr name="SCLK pin/0000"></uattr>
+            </io_usage>
+        </resource_ref>
+        <resource_ref name="System CPU Alert" enabled="1"/>
+        <resource_ref name="TDC" enabled="1"/>
+        <resource_ref name="Timer 0" enabled="0"/>
+        <resource_ref name="Timer Event Trigger" enabled="0"/>
+        <resource_ref name="UART Emulator" enabled="0">
+            <rattr name="RX buffer size">64</rattr>
+            <rattr name="Required idle period before enabling RX">11</rattr>
+            <rattr name="TX buffer size">64</rattr>
+            <io_usage>
+                <uattr name="RX pin/0000"></uattr>
+                <uattr name="TX pin/0000"></uattr>
+            </io_usage>
+        </resource_ref>
+        <sccode name="event0"><![CDATA[// Acquire shared peripherals, and enable TDC
+fwAcquirePeripheral(PERIPHERAL_TDC);
+tdcEnable();
+
+// Select 2 x 24 MHz from RCOSC_HF as TDC counter clock source
+tdcSetCntSource(TDC_CNTSRC_48M_RCOSC);
+
+// Enable the TDC with start trigger on AUXIO High and stop trigger on AUXIO Low
+tdcSetTriggers(TDC_STARTTRIG_AUXIO_HIGH_BASE + AUXIO_XS_RANGER, TDC_STOPTRIG_AUXIO_LOW_BASE + AUXIO_XS_RANGER, 0);
+
+// Drive high for 5 us
+gpioGenPulseTrain(AUXIO_XS_RANGER, 1, 60, 0, 1);
+//gpioSetOutput(AUXIO_XS_RANGER);
+//fwDelayUs(5, FW_DELAY_RANGE_10_US);
+//gpioClearOutput(AUXIO_XS_RANGER);
+
+// Change pin mode to input
+gpioCfgMode(AUXIO_XS_RANGER, GPIO_MODE_INPUT);
+gpioEnableInputBuf(AUXIO_XS_RANGER);
+
+// Ready TDC and wait 30 ms for answer
+tdcArm(TDC_START_ASYNC);
+tdcWaitUs(24000);
+
+// Get TDC value
+tdcGetValue(output.tdcValueH, output.tdcValueL);
+output.tof = (output.tdcValueH << 11) | (output.tdcValueL >> 5);
+
+// Disable TDC, and release the peripheral
+tdcDisable();
+fwReleasePeripheral(PERIPHERAL_TDC);
+
+// Alert application
+fwGenAlertInterrupt();
+
+// Change pin mode back to output
+gpioDisableInputBuf(AUXIO_XS_RANGER);
+gpioCfgMode(AUXIO_XS_RANGER, GPIO_MODE_OUTPUT);
+
+
+// Schedule next iteration
+evhSetupTimerTrigger(0, input.period, 2);]]></sccode>
+        <sccode name="execute"><![CDATA[// Acquire shared peripherals, and enable TDC
+fwAcquirePeripheral(PERIPHERAL_TDC);
+tdcEnable();
+
+// Select 2 x 24 MHz from RCOSC_HF as TDC counter clock source
+tdcSetCntSource(TDC_CNTSRC_48M_RCOSC);
+
+// Enable the TDC with start trigger on AUXIO High and stop trigger on AUXIO Low
+tdcSetTriggers(TDC_STARTTRIG_AUXIO_HIGH_BASE + AUXIO_XS_RANGER, TDC_STOPTRIG_AUXIO_LOW_BASE + AUXIO_XS_RANGER, 0);
+
+// Drive high for 5 us
+gpioSetOutput(AUXIO_XS_RANGER);
+fwDelayUs(5, FW_DELAY_RANGE_10_US);
+gpioClearOutput(AUXIO_XS_RANGER);
+
+// Enable the gpio input buffer
+gpioEnableInputBuf(AUXIO_XS_RANGER);
+
+// Ready TDC and wait 24 ms for answer
+tdcArm(TDC_START_ASYNC);
+tdcWaitUs(24000);
+
+// Get TDC value
+tdcGetValue(output.tdcValueH, output.tdcValueL);
+output.tof = (output.tdcValueH << 11) | (output.tdcValueL >> 5);
+
+// Disable TDC, and release the peripheral
+tdcDisable();
+fwReleasePeripheral(PERIPHERAL_TDC);
+
+// Alert application
+fwGenAlertInterrupt();
+
+// Disable the gpio input buffer
+gpioDisableInputBuf(AUXIO_XS_RANGER);
+
+// Schedule execution next tick
+fwScheduleTask(1);]]></sccode>
+        <sccode name="initialize"><![CDATA[// Schedule first iteration
+fwScheduleTask(1);]]></sccode>
+        <sccode name="terminate"><![CDATA[]]></sccode>
+        <tt_iter>run_event0</tt_iter>
+        <tt_struct>output.tof</tt_struct>
+    </task>
+    <task name="Polling">
+        <desc><![CDATA[]]></desc>
+        <tattr name="output.counter" type="dec" content="struct" scope="task" min="0" max="65535">0</tattr>
+        <resource_ref name="ADC" enabled="0"/>
+        <resource_ref name="Analog Open-Drain Pins" enabled="0"/>
+        <resource_ref name="Analog Open-Source Pins" enabled="0"/>
+        <resource_ref name="Analog Pins" enabled="0"/>
+        <resource_ref name="COMPA" enabled="0"/>
+        <resource_ref name="COMPB" enabled="0"/>
+        <resource_ref name="COMPB Event Trigger" enabled="0"/>
+        <resource_ref name="Delay Insertion" enabled="1"/>
+        <resource_ref name="Differential Output Pins" enabled="0"/>
+        <resource_ref name="Digital Input Pins" enabled="0"/>
+        <resource_ref name="Digital Open-Drain Pins" enabled="0"/>
+        <resource_ref name="Digital Open-Source Pins" enabled="1">
+            <io_usage name="RANGER" label="Polling Ranger">
+                <uattr name="Configuration on uninitialization">-1</uattr>
+                <uattr name="Output value on initialization">0</uattr>
+                <uattr name="Pin count">0</uattr>
+                <uattr name="Pin/0000">DIO28</uattr>
+                <uattr name="Pin/0001"></uattr>
+                <uattr name="Pin/0002"></uattr>
+                <uattr name="Pin/0003"></uattr>
+                <uattr name="Pin/0004"></uattr>
+                <uattr name="Pin/0005"></uattr>
+                <uattr name="Pin/0006"></uattr>
+                <uattr name="Pin/0007"></uattr>
+                <uattr name="Pin/0008"></uattr>
+                <uattr name="Pin/0009"></uattr>
+                <uattr name="Pin/0010"></uattr>
+                <uattr name="Pin/0011"></uattr>
+                <uattr name="Pin/0012"></uattr>
+                <uattr name="Pin/0013"></uattr>
+                <uattr name="Pin/0014"></uattr>
+                <uattr name="Pin/0015"></uattr>
+            </io_usage>
+        </resource_ref>
+        <resource_ref name="Digital Output Pins" enabled="0"/>
+        <resource_ref name="GPIO Event Trigger" enabled="0"/>
+        <resource_ref name="I2C Master" enabled="0">
+            <rattr name="SCL frequency">0</rattr>
+            <rattr name="SCL stretch timeout">1</rattr>
+            <io_usage>
+                <uattr name="SCL pin/0000"></uattr>
+                <uattr name="SDA pin/0000"></uattr>
+            </io_usage>
+        </resource_ref>
+        <resource_ref name="ISRC" enabled="0"/>
+        <resource_ref name="Math and Logic" enabled="0"/>
+        <resource_ref name="Multi-Buffered Output Data Exchange" enabled="0">
+            <rattr name="Buffer count">2</rattr>
+            <rattr name="Indicate overflow at buffer check">1</rattr>
+            <rattr name="Indicate overflow at buffer switch">0</rattr>
+            <rattr name="Prevent overflow at buffer switch">1</rattr>
+        </resource_ref>
+        <resource_ref name="Peripheral Sharing" enabled="1"/>
+        <resource_ref name="RTC Multi-Event Capture" enabled="0"/>
+        <resource_ref name="RTC-Based Execution Scheduling" enabled="1"/>
+        <resource_ref name="SPI Chip Select" enabled="0"/>
+        <resource_ref name="SPI Data Transfer" enabled="0">
+            <rattr name="Bit rate">0</rattr>
+            <rattr name="MISO configuration when inactive">-1</rattr>
+            <rattr name="MOSI configuration on initialization">0</rattr>
+            <rattr name="MOSI configuration on uninitialization">0</rattr>
+            <rattr name="SCLK configuration on initialization">0</rattr>
+            <rattr name="SCLK configuration on uninitialization">0</rattr>
+            <io_usage>
+                <uattr name="MISO pin/0000"></uattr>
+                <uattr name="MOSI pin/0000"></uattr>
+                <uattr name="SCLK pin/0000"></uattr>
+            </io_usage>
+        </resource_ref>
+        <resource_ref name="System CPU Alert" enabled="1"/>
+        <resource_ref name="TDC" enabled="1"/>
+        <resource_ref name="Timer 0" enabled="0"/>
+        <resource_ref name="Timer Event Trigger" enabled="0"/>
+        <resource_ref name="UART Emulator" enabled="0">
+            <rattr name="RX buffer size">64</rattr>
+            <rattr name="Required idle period before enabling RX">11</rattr>
+            <rattr name="TX buffer size">64</rattr>
+            <io_usage>
+                <uattr name="RX pin/0000"></uattr>
+                <uattr name="TX pin/0000"></uattr>
+            </io_usage>
+        </resource_ref>
+        <sccode name="event0"><![CDATA[]]></sccode>
+        <sccode name="execute"><![CDATA[// Drive high for 5 us
+gpioSetOutput(AUXIO_XS_RANGER);
+fwDelayUs(5, FW_DELAY_RANGE_10_US);
+gpioClearOutput(AUXIO_XS_RANGER);
+
+// Enable the gpio input buffer
+gpioEnableInputBuf(AUXIO_XS_RANGER);
+
+// Wait for answer
+U16 pin;
+do {
+    gpioGetInputValue(AUXIO_XS_RANGER; pin);
+} while (pin == 0);
+
+// Count how long the answer is
+U16 counter = 0;
+do {
+    counter += 1;
+    gpioGetInputValue(AUXIO_XS_RANGER; pin);
+} while (pin == 1);
+
+// Store counter value in an output structure data member
+output.counter = counter;
+
+// Disable the gpio input buffer
+gpioDisableInputBuf(AUXIO_XS_RANGER);
+
+// Alert application
+fwGenAlertInterrupt();
+
+// Schedule next iteration
+fwScheduleTask(1);]]></sccode>
+        <sccode name="initialize"><![CDATA[// Schedule first iteration
+fwScheduleTask(1);]]></sccode>
+        <sccode name="terminate"><![CDATA[]]></sccode>
+        <tt_iter>run_execute</tt_iter>
+        <tt_struct></tt_struct>
+    </task>
+</project>

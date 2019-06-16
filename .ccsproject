@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?ccsproject version="1.0"?>
+<projectOptions>
+	<ccsVersion value="9.0.0"/>
+	<deviceVariant value="Cortex M.CC2650F128"/>
+	<deviceFamily value="TMS470"/>
+	<deviceEndianness value="little"/>
+	<codegenToolVersion value="18.12.1.LTS"/>
+	<isElfFormat value="true"/>
+	<rts value="libc.a"/>
+	<createSlaveProjects value=""/>
+	<templateProperties value="id=adc_ranger_ble_CC2650_LAUNCHXL.projectspec.adc_ranger_ble_CC2650_LAUNCHXL,type=rtsc,products=com.ti.rtsc.TIRTOSCC13XX_CC26XX:2.20.1.08,xdcToolsVersion=3.32.00.06,target=ti.targets.arm.elf.M3,platform=ti.platforms.simplelink:CC2650F128,buildProfile=release,isHybrid=true,configuroOptions=--compileOptions &quot;${COMPILER_FLAGS} &quot; "/>
+	<origin value="C:\ti\simplelink_academy_01_11_00_0000\modules\projects\sc_adc_ranger\adc_ranger_ble\ccs\desktop\adc_ranger_ble_CC2650_LAUNCHXL.projectspec"/>
+	<filesToOpen value="Application/project_zero.c"/>
+</projectOptions>
